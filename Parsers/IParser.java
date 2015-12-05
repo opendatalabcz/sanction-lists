@@ -1,13 +1,14 @@
 package Parsers;
 
-import java.io.IOException;
+
+import java.io.Reader;
 
 /**
  * @author Peter Babics <babicpe1@fit.cvut.cz>
  */
 public interface IParser
 {
-    void init(String url);
+    void initialize(Reader url);
 
     SanctionListEntry getNextEntry();
 }
