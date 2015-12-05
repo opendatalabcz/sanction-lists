@@ -1,7 +1,10 @@
 import Parsers.IParser;
 import Parsers.SanctionListEntry;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -12,7 +15,34 @@ import java.util.Properties;
  */
 public class Fetcher
 {
-    private static String propertiesFile = "SankcniSeznamy.properties";
+    private static final String propertiesFile = "SankcniSeznamy.properties";
+
+    private static LinkedList<SanctionListEntry> parseStream(InputStream stream, IParser parser)
+    {
+        if (stream == null || parser == null)
+            return null;
+
+        LinkedList<SanctionListEntry> entries = new LinkedList<SanctionListEntry>();
+        try
+        {
+            parser.initialize(stream);
+
+            SanctionListEntry entry;
+            while ((entry = parser.getNextEntry()) != null)
+            {
+                entries.add(entry);
+            }
+
+            stream.close();
+
+        } catch (IOException e)
+        {
+            System.err.println("IO Exception while reading data source stream: " + e.getMessage() + ", skipping");
+            return null;
+        }
+
+        return entries;
+    }
 
     private static LinkedList<SanctionListEntry> parseURL(String url, String parserName)
     {
@@ -32,40 +62,22 @@ public class Fetcher
         }
 
         URL dataSource;
+        InputStream stream;
         try
         {
             dataSource = new URL(url);
+            stream = dataSource.openConnection().getInputStream();
         } catch (MalformedURLException e)
         {
             System.err.println("Supplied malformed URL: " + e.getMessage() + ", skipping");
             return null;
-        }
-
-        LinkedList<SanctionListEntry> entries = new LinkedList<SanctionListEntry>();
-        try
-        {
-            BufferedReader reader = new BufferedReader(
-                                new InputStreamReader(
-                                        dataSource.openConnection().getInputStream()
-                                )
-            );
-            parser.initialize(reader);
-
-            SanctionListEntry entry;
-            while ((entry = parser.getNextEntry()) != null)
-            {
-                entries.add(entry);
-            }
-
-            reader.close();
-
         } catch (IOException e)
         {
             System.err.println("IO Exception while opening stream to data source: " + e.getMessage() + ", skipping");
             return null;
         }
 
-        return entries;
+        return parseStream(stream, parser);
     }
 
     public static void main(String[] args)
@@ -80,7 +92,7 @@ public class Fetcher
 
         Properties properties = new Properties(defaultProps);
         if (!(new File(propertiesFile)).exists())
-            System.err.println("Missing properties file, using default values");
+            System.out.println("Missing properties file, using default values");
         else
             try
             {
@@ -91,39 +103,20 @@ public class Fetcher
             }
         LinkedList<SanctionListEntry> entries = new LinkedList<SanctionListEntry>();
 
-        if (properties.getProperty("BIS_URL") != null)
+        String[] lists = { "BIS", "BOE", "UN", "EU", "OFAC"};
+        for (String list : lists)
         {
-            LinkedList<SanctionListEntry> e = parseURL(properties.getProperty("BIS_URL"), "BIS_Parser");
-            if (e != null)
-                entries.addAll(e);
-        }
-
-        if (properties.getProperty("BOE_URL") != null)
-        {
-            LinkedList<SanctionListEntry> e = parseURL(properties.getProperty("BOE_URL"), "BOE_Parser");
-            if (e != null)
-                entries.addAll(e);
-        }
-
-        if (properties.getProperty("UN_URL") != null)
-        {
-            LinkedList<SanctionListEntry> e = parseURL(properties.getProperty("UN_URL"), "UN_Parser");
-            if (e != null)
-                entries.addAll(e);
-        }
-
-        if (properties.getProperty("EU_URL") != null)
-        {
-            LinkedList<SanctionListEntry> e = parseURL(properties.getProperty("EU_URL"), "EU_Parser");
-            if (e != null)
-                entries.addAll(e);
-        }
-
-        if (properties.getProperty("OFAC_URL") != null)
-        {
-            LinkedList<SanctionListEntry> e = parseURL(properties.getProperty("OFAC_URL"), "OFAC_Parser");
-            if (e != null)
-                entries.addAll(e);
+            String listUrlName = list + "_URL";
+            String listParserName = list + "_Parser";
+            if (properties.getProperty(listUrlName) != null)
+            {
+                LinkedList<SanctionListEntry> e = parseURL(properties.getProperty(listUrlName), listParserName);
+                if (e != null)
+                {
+                    entries.addAll(e);
+                    System.out.println(list + " Fetched: " + e.size() + " entries");
+                }
+            }
         }
 
         System.out.println("Fetched: " + entries.size() + " entries");

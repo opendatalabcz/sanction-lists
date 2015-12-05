@@ -7,11 +7,11 @@ import java.util.HashSet;
  */
 public class SanctionListEntry
 {
-    public HashSet<String> names = new HashSet<String>();
-    public HashSet<String> addresses = new HashSet<String>();
-    public HashSet<String> nationalities = new HashSet<String>();
-    public HashSet<String> placesOfBirth = new HashSet<String>();
-    public HashSet<String> datesOfBirth = new HashSet<String>();
+    public final HashSet<String> names = new HashSet<String>();
+    public final HashSet<String> addresses = new HashSet<String>();
+    public final HashSet<String> nationalities = new HashSet<String>();
+    public final HashSet<String> placesOfBirth = new HashSet<String>();
+    public final HashSet<String> datesOfBirth = new HashSet<String>();
 
 
 }
