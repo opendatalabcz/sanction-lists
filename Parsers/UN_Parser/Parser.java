@@ -24,9 +24,6 @@ import java.util.Stack;
  */
 public class Parser implements IParser
 {
-    private Document document = null;
-    private XPath selector;
-    private NodeList entities;
 
     private final Stack<SanctionListEntry> list = new Stack<SanctionListEntry>();
 
@@ -57,7 +54,7 @@ public class Parser implements IParser
         return null;
     }
 
-    protected String parseAddressNode(Node node)
+    private String parseAddressNode(Node node)
     {
         NodeList childs = node.getChildNodes();
         String street = null;
@@ -96,7 +93,7 @@ public class Parser implements IParser
         return place;
     }
 
-    protected String parseBirthDateNode(Node node)
+    private String parseBirthDateNode(Node node)
     {
         NodeList childs = node.getChildNodes();
         String date = null;
@@ -110,7 +107,7 @@ public class Parser implements IParser
         return date;
     }
 
-    protected String parseBirthPlaceNode(Node node)
+    private String parseBirthPlaceNode(Node node)
     {
         NodeList childs = node.getChildNodes();
         String city = null;
@@ -138,7 +135,7 @@ public class Parser implements IParser
         return place;
     }
 
-    protected String parseNationalityNode(Node node)
+    private String parseNationalityNode(Node node)
     {
         NodeList childs = node.getChildNodes();
         for (int i = 0; i < childs.getLength(); ++i)
@@ -151,7 +148,7 @@ public class Parser implements IParser
         return null;
     }
 
-    protected void parseEntityNodeList(NodeList entities, String prefix)
+    private void parseEntityNodeList(NodeList entities, String prefix)
     {
         for (int i = 0; i < entities.getLength(); ++i)
         {
@@ -225,9 +222,9 @@ public class Parser implements IParser
         try
         {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            document = builder.parse(stream);
-            selector = XPathFactory.newInstance().newXPath();
-            entities = (NodeList) selector.compile("//INDIVIDUALS/INDIVIDUAL").evaluate(document, XPathConstants.NODESET);
+            Document document = builder.parse(stream);
+            XPath selector = XPathFactory.newInstance().newXPath();
+            NodeList entities = (NodeList) selector.compile("//INDIVIDUALS/INDIVIDUAL").evaluate(document, XPathConstants.NODESET);
             parseEntityNodeList(entities, "individual_");
             entities = (NodeList) selector.compile("//ENTITIES/ENTITY").evaluate(document, XPathConstants.NODESET);
             parseEntityNodeList(entities, "entity_");

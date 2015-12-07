@@ -14,7 +14,6 @@ import java.util.Stack;
  */
 public class Parser implements IParser
 {
-    private CSVReader reader;
     private final Stack<SanctionListEntry> list = new Stack<SanctionListEntry>();
 
     private static final int NAME_START = 0;
@@ -58,7 +57,7 @@ public class Parser implements IParser
     {
         try
         {
-            this.reader = new CSVReader(new BufferedReader(new InputStreamReader(stream, "UTF-8")));
+            CSVReader reader = new CSVReader(new BufferedReader(new InputStreamReader(stream, "UTF-8")));
             ArrayList<String[]> rows;
             reader.readNext(); // Drop Header
             reader.readNext(); // Drop Header

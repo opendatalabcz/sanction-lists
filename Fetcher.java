@@ -13,7 +13,7 @@ import java.util.Properties;
 /**
  * @author Peter Babics <babicpe1@fit.cvut.cz>
  */
-public class Fetcher
+class Fetcher
 {
     private static final String propertiesFile = "SankcniSeznamy.properties";
 
@@ -86,9 +86,8 @@ public class Fetcher
         defaultProps.setProperty("BIS_URL", "https://api.trade.gov/consolidated_screening_list/search.csv?api_key=OHZYuksFHSFao8jDXTkfiypO");
         defaultProps.setProperty("BOE_URL", "http://hmt-sanctions.s3.amazonaws.com/sanctionsconlist.csv");
         defaultProps.setProperty("UN_URL", "https://www.un.org/sc/suborg/sites/www.un.org.sc.suborg/files/consolidated.xml");
-        defaultProps.setProperty("OFAC_URL", "http://www.treasury.gov/ofac/downloads/sdnlist.txt");
+        defaultProps.setProperty("OFAC_URL", "https://www.treasury.gov/ofac/downloads/sdnlist.txt");
         defaultProps.setProperty("EU_URL", "http://ec.europa.eu/external_relations/cfsp/sanctions/list/version4/global/global.xml");
-
 
         Properties properties = new Properties(defaultProps);
         if (!(new File(propertiesFile)).exists())
@@ -103,7 +102,7 @@ public class Fetcher
             }
         LinkedList<SanctionListEntry> entries = new LinkedList<SanctionListEntry>();
 
-        String[] lists = { "BIS", "BOE", "UN", "EU", "OFAC"};
+        String[] lists = { "BIS", "BOE", "UN", "EU", "OFAC" };
         for (String list : lists)
         {
             String listUrlName = list + "_URL";
@@ -119,6 +118,5 @@ public class Fetcher
             }
         }
 
-        System.out.println("Fetched: " + entries.size() + " entries");
     }
 }

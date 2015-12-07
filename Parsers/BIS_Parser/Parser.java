@@ -22,7 +22,7 @@ public class Parser implements IParser
     // private static final int CITIZENSHIP = 22;
     private static final int DATE_OF_BIRTH = 23;
 
-    private static final int NATIONATLITY = 24;
+    private static final int NATIONALITY = 24;
     private static final int PLACE_OF_BIRTH = 25;
 
 
@@ -74,7 +74,7 @@ public class Parser implements IParser
             if (pob.trim().length() > 0)
                 e.placesOfBirth.add(pob.trim());
 
-        for (String nationality : line[NATIONATLITY].split(";"))
+        for (String nationality : line[NATIONALITY].split(";"))
             if (nationality.trim().length() > 0)
                 e.nationalities.add(nationality.trim());
 
