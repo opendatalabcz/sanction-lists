@@ -1,10 +1,11 @@
 package Parsers.OFAC_Parser;
 
+import Helpers.CompanyReference;
+import Helpers.Defines;
 import Parsers.SanctionListEntry;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashSet;
-import java.util.Stack;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * @author Peter Babics <babicpe1@fit.cvut.cz>
@@ -54,6 +55,7 @@ public class EntryParser
     private Symbol currentSymbol;
     private final static String[] keywords = { "nationality", "DOB", "POB", "citizen", "a.k.a.", "f.k.a.", "n.k.a.", "alt.", "c/o" };
     private final Stack<Symbol> symbolStack = new Stack<Symbol>();
+    private static final String lowerCaseCharacters = "abcdefghijklmnopqrstuwxyz";
 
 
     public static class ESyntaxError extends Exception
@@ -73,7 +75,8 @@ public class EntryParser
 
     private void pushBackSymbol(Symbol s)
     {
-        symbolStack.push(s);
+        symbolStack.push(currentSymbol);
+        currentSymbol = s;
     }
 
     private Symbol getNextSymbol()
@@ -94,15 +97,21 @@ public class EntryParser
     private void consume(SymbolType type) throws ESyntaxError
     {
         if (currentSymbol.type != type)
-            throw new ESyntaxError("Syntax Error, Expecting: " + type.name() + " Got: " + currentSymbol.type.name());
+            throw new ESyntaxError("Syntax Error, Expecting: " + type.name() + " Got: " + currentSymbol.type.name() + ( currentSymbol.type == SymbolType.STRING ? "( '" + currentSymbol.value + "' )" : ""));
         getNextSymbol();
     }
 
     private String parseQuotedString() throws ESyntaxError
     {
         // System.out.println("[parseQuotedString]");
+        return parseNestedString(SymbolType.QUOTE, SymbolType.QUOTE);
+    }
+
+    private String parseNestedString(SymbolType startingSymbol, SymbolType endingSymbol) throws ESyntaxError
+    {
+        // System.out.println("[parseNestedString]");
         String out;
-        consume(SymbolType.QUOTE);
+        consume(startingSymbol);
         if (currentSymbol.type == SymbolType.QUOTE) // Double Quoted Strings
             out = parseQuotedString();
         else
@@ -110,16 +119,16 @@ public class EntryParser
             StringBuilder b = new StringBuilder(currentSymbol.value);
             consume(currentSymbol.type);
             while (currentSymbol.type != SymbolType.EOL &&
-                    currentSymbol.type != SymbolType.QUOTE)
+                    currentSymbol.type != endingSymbol)
             {
-                b.append(" ");
-                b.append(currentSymbol.value);
+                b.append(' ')
+                    .append(currentSymbol.value);
                 consume(currentSymbol.type);
             }
             out = b.toString();
         }
-        consume(SymbolType.QUOTE);
-        return out;
+        consume(endingSymbol);
+        return Defines.sanitizeString(out);
     }
 
     private String parseIndividualName() throws ESyntaxError
@@ -155,12 +164,8 @@ public class EntryParser
                         b.append(currentSymbol.value);
                     }
                     consume(SymbolType.R_PAR);
-                }
-                else
-                {
-                    pushBackSymbol(currentSymbol);
+                } else
                     pushBackSymbol(prev);
-                }
             }
 
             if (currentSymbol.type == SymbolType.COMMA)
@@ -186,24 +191,17 @@ public class EntryParser
                     while (currentSymbol.type != SymbolType.R_PAR &&
                             currentSymbol.type != SymbolType.EOL)
                         b.append(" ")
-                            .append(currentSymbol.value);
+                                .append(currentSymbol.value);
                     consume(SymbolType.R_PAR);
-                }
-                else
-                {
-                    pushBackSymbol(currentSymbol);
+                } else
                     pushBackSymbol(prev);
-                }
             }
-
 
             name = b.toString();
         }
 
 
-        return name.replace(",", " ")
-                    .replaceAll("[ \t]{2,}", " ")
-                    .trim();
+        return Defines.sanitizeString(name);
     }
 
     private String parseAliasName() throws ESyntaxError
@@ -214,6 +212,7 @@ public class EntryParser
             case KW_AKA:
             case KW_NKA:
             case KW_FKA:
+            {
                 consume(currentSymbol.type);
                 String name;
                 if (currentSymbol.type == SymbolType.QUOTE)
@@ -226,14 +225,13 @@ public class EntryParser
                             currentSymbol.type != SymbolType.R_PAR &&
                             currentSymbol.type != SymbolType.EOL)
                     {
+                        b.append(' ');
                         if (currentSymbol.type == SymbolType.QUOTE)
-                        {
-                            b.append(" ");
                             b.append(parseQuotedString());
-                        }
+                        else if (currentSymbol.type == SymbolType.L_PAR)
+                            b.append(parseNestedString(SymbolType.L_PAR, SymbolType.R_PAR));
                         else
                         {
-                            b.append(" ");
                             b.append(currentSymbol.value);
                             consume(currentSymbol.type);
                         }
@@ -241,9 +239,8 @@ public class EntryParser
                     name = b.toString();
                 }
 
-                return name.replace(",", " ")
-                            .replaceAll("[ \t]{2,}", " ")
-                            .trim();
+                return Defines.sanitizeString(name);
+            }
 
             default:
                 consume(SymbolType.KW_AKA);
@@ -280,11 +277,7 @@ public class EntryParser
             consume(currentSymbol.type);
         }
 
-        return b.toString()
-                .replace('"', ' ')
-                .replace(',', ' ')
-                .replaceAll("[ \t]{2,}", " ")
-                .trim();
+        return Defines.sanitizeString(b.toString());
     }
 
     private String parseCommaSeparatedField() throws ESyntaxError
@@ -298,11 +291,7 @@ public class EntryParser
             consume(currentSymbol.type);
         }
 
-        return b.toString()
-                .replace('"', ' ')
-                .replace(',', ' ')
-                .replaceAll("[ \t]{2,}", " ")
-                .trim();
+        return Defines.sanitizeString(b.toString());
     }
 
     private String parseSimpleField(SymbolType type) throws ESyntaxError
@@ -312,28 +301,52 @@ public class EntryParser
         return parseSimpleString();
     }
 
+    public HashSet<CompanyReference> parseCompanyReference(Set<String> companyNames) throws ESyntaxError
+    {
+        HashSet<CompanyReference> out = new HashSet<CompanyReference>();
+        consume(SymbolType.KW_CO);
+        String companyName = parseCompanyName();
+        String companyAddress = null;
+        if (currentSymbol.type == SymbolType.COMMA)
+        {
+            companyAddress = parseSimpleString();
+            if (companyAddress.compareTo("undetermined") == 0)
+                companyAddress = null;
+        }
+        String[] tmp = companyName.toLowerCase().split(" ");
+        Arrays.sort(tmp);
+        String specialName = StringUtils.join(tmp, ' ');
+        if (companyName.length() > 0 &&
+                !companyNames.contains(specialName))
+        {
+            out.add(new CompanyReference(companyName, companyAddress));
+            companyNames.add(specialName);
+        }
+
+        return out;
+    }
+
     public SanctionListEntry parseIndividual()
     {
         // System.out.println("[parseIndividual]");
         SanctionListEntry entry;
         try
         {
-            entry = new SanctionListEntry();
+            entry = new SanctionListEntry("OFAC", SanctionListEntry.EntryType.PERSON);
 
             entry.names.add(parseIndividualName());
 
             if (currentSymbol.type == SymbolType.L_PAR)
                 entry.names.addAll(parseAliases());
 
+            Set<String> companyNames = new HashSet<String>();
+
             if (currentSymbol.type == SymbolType.COMMA)
             {
                 consume(SymbolType.COMMA);
 
                 if (currentSymbol.type == SymbolType.KW_CO)
-                {
-                    consume(currentSymbol.type);
-                    /*String company = */ parseCommaSeparatedField();
-                }
+                    entry.companies.addAll(parseCompanyReference(companyNames));
 
 
                 if (currentSymbol.type != SymbolType.SEMICOLON &&
@@ -369,10 +382,7 @@ public class EntryParser
                         break;
 
                     case KW_CO:
-                        consume(currentSymbol.type);
-                        /* String Company = */parseCommaSeparatedField();
-                        if (currentSymbol.type == SymbolType.COMMA)
-                        /* String CompanyAddress = */parseSimpleString();
+                        entry.companies.addAll(parseCompanyReference(companyNames));
                         break;
 
                     default:
@@ -391,28 +401,113 @@ public class EntryParser
         return entry;
     }
 
+    protected String parseCompanyName() throws ESyntaxError
+    {
+        // System.out.println("[parseCompanyName]");
+        String name;
+        if (currentSymbol.type == SymbolType.QUOTE)
+            name = parseQuotedString();
+        else
+        {
+            StringBuilder out = new StringBuilder();
+            boolean firstField = true;
+            while (currentSymbol.type == SymbolType.STRING ||
+                    currentSymbol.type == SymbolType.COMMA)
+            {
+                boolean consumedComma = false;
+                if (currentSymbol.type == SymbolType.COMMA)
+                {
+                    consumedComma = true;
+                    consume(SymbolType.COMMA);
+                }
+
+                if (currentSymbol.type != SymbolType.STRING)
+                    break;
+
+                StringBuilder b = new StringBuilder(currentSymbol.value);
+                consume(SymbolType.STRING);
+                while (currentSymbol.type == SymbolType.STRING)
+                {
+                    b.append(' ')
+                            .append(currentSymbol.value);
+                    consume(currentSymbol.type);
+                }
+
+                if (!firstField)
+                {
+                    String p = b.toString().toUpperCase();
+                    String up = p.replaceAll("[.]", "").replaceAll("[ \t]{2,}", " ").trim();
+                    if (!p.equals(b.toString()) &&
+                            !up.equals("SA DE CV") &&
+                            !up.equals("LTDA") &&
+                            !up.equals("CORP") &&
+                            !up.equals("LTD"))
+                    {
+                        pushBackSymbol(new Symbol(b.toString()));
+                        if (consumedComma)
+                            pushBackSymbol(new Symbol(","));
+                        break;
+                    }
+                }
+                out.append(b.toString());
+                firstField = false;
+
+                b = new StringBuilder();
+                if (currentSymbol.type == SymbolType.L_PAR)
+                {
+                    Symbol prev = currentSymbol;
+                    getNextSymbol();
+                    if (currentSymbol.type != SymbolType.KW_NKA &&
+                            currentSymbol.type != SymbolType.KW_AKA &&
+                            currentSymbol.type != SymbolType.KW_FKA)
+                    {
+                        consume(currentSymbol.type);
+                        while (currentSymbol.type != SymbolType.R_PAR &&
+                                currentSymbol.type != SymbolType.EOL)
+                        {
+                            b.append(' ')
+                                .append(currentSymbol.value);
+                            consume(currentSymbol.type);
+                        }
+                        consume(SymbolType.R_PAR);
+                    }
+                    else
+                    {
+                        pushBackSymbol(prev);
+                        break;
+                    }
+                }
+                out.append(' ')
+                    .append(b.toString());
+            }
+            name = out.toString();
+        }
+
+
+        return Defines.sanitizeString(name);
+    }
+
     public SanctionListEntry parseCompany()
     {
         // System.out.println("[parseCompany]");
         SanctionListEntry entry;
         try
         {
-            entry = new SanctionListEntry();
+            entry = new SanctionListEntry("OFAC", SanctionListEntry.EntryType.COMPANY);
 
-            entry.names.add(parseCommaSeparatedField());
+            entry.names.add(parseCompanyName());
 
             if (currentSymbol.type == SymbolType.L_PAR)
                 entry.names.addAll(parseAliases());
+
+            Set<String> companyNames = new HashSet<String>();
 
             if (currentSymbol.type == SymbolType.COMMA)
             {
                 consume(SymbolType.COMMA);
 
                 if (currentSymbol.type == SymbolType.KW_CO)
-                {
-                    consume(currentSymbol.type);
-                    /*String company = */ parseCommaSeparatedField();
-                }
+                    entry.companies.addAll(parseCompanyReference(companyNames));
 
 
                 if (currentSymbol.type != SymbolType.SEMICOLON &&
@@ -431,20 +526,36 @@ public class EntryParser
                     consume(SymbolType.KW_ALT);
                 switch (currentSymbol.type)
                 {
+                    case KW_CO:
+                        entry.companies.addAll(parseCompanyReference(companyNames));
+                        break;
 
                     default:
+                        StringBuilder b = new StringBuilder();
                         while (currentSymbol.type != SymbolType.SEMICOLON &&
                                 currentSymbol.type != SymbolType.EOL)
+                        {
+                            b.append(' ')
+                                    .append(currentSymbol.value);
                             consume(currentSymbol.type);
+                        }
+                        String line = b.toString().replace(",", " ")
+                                                    .replaceAll("[ \t]{2,}", " ")
+                                                    .trim();
+
+                        if (Defines.countriesSet.contains(line.substring(line.lastIndexOf(' ') + 1)))
+                            entry.addresses.add(line);
                 }
             }
-        } catch (ESyntaxError eSyntaxError)
+        }
+        catch (ESyntaxError eSyntaxError)
         {
             eSyntaxError.printStackTrace();
             System.err.println("Syntax error: " + eSyntaxError.getMessage());
             System.err.println("\t While Parsing: " + line);
             return null;
         }
+
         return entry;
     }
 

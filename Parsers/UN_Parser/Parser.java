@@ -1,5 +1,6 @@
 package Parsers.UN_Parser;
 
+import Helpers.Defines;
 import Parsers.IParser;
 import Parsers.SanctionListEntry;
 import org.w3c.dom.Document;
@@ -47,7 +48,7 @@ public class Parser implements IParser
             HashSet<String> out = new HashSet<String>();
             String[] t = aliasses.split(";");
             for (String s : t)
-                out.add(s.trim());
+                out.add(Defines.sanitizeString(s));
             return out;
         }
 
@@ -154,7 +155,7 @@ public class Parser implements IParser
         {
             Node node = entities.item(i);
 
-            SanctionListEntry entry = new SanctionListEntry();
+            SanctionListEntry entry = new SanctionListEntry("UN", prefix.compareTo("individual_") == 0 ? SanctionListEntry.EntryType.PERSON : SanctionListEntry.EntryType.COMPANY);
 
             NodeList childs = node.getChildNodes();
             String[] names = new String[5];
@@ -182,22 +183,22 @@ public class Parser implements IParser
                 {
                     String birth = parseBirthDateNode(child);
                     if (birth != null && birth.trim().length() > 0)
-                        entry.datesOfBirth.add(birth.trim());
+                        entry.datesOfBirth.add(Defines.sanitizeString(birth));
                 } else if (nodeName.compareTo(prefix + "place_of_brith") == 0)
                 {
                     String birth = parseBirthPlaceNode(child);
                     if (birth != null && birth.trim().length() > 0)
-                        entry.placesOfBirth.add(birth.trim());
+                        entry.placesOfBirth.add(Defines.sanitizeString(birth));
                 } else if (nodeName.compareTo("nationality") == 0)
                 {
                     String nationality = parseNationalityNode(child);
                     if (nationality != null && nationality.trim().length() > 0)
-                        entry.nationalities.add(nationality.trim());
+                        entry.nationalities.add(Defines.sanitizeString(nationality));
                 } else if (nodeName.compareTo(prefix + "address") == 0)
                 {
                     String address = parseAddressNode(child);
                     if (address != null && address.trim().length() > 0)
-                        entry.addresses.add(address.trim());
+                        entry.addresses.add(Defines.sanitizeString(address));
                 }
             }
 
@@ -210,7 +211,8 @@ public class Parser implements IParser
                     else
                         name = name + " " + names[n];
                 }
-            entry.names.add(name);
+            if (name != null)
+                entry.names.add(Defines.sanitizeString(name));
 
             list.push(entry);
         }

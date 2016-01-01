@@ -1,5 +1,7 @@
 package Parsers.EU_Parser;
 
+import Helpers.Defines;
+import Helpers.Pair;
 import Parsers.IParser;
 import Parsers.SanctionListEntry;
 import org.w3c.dom.Document;
@@ -25,28 +27,6 @@ public class Parser implements IParser
 {
 
     private final Stack<SanctionListEntry> list = new Stack<SanctionListEntry>();
-
-    private static class Tuple<A, B>
-    {
-        final A first;
-        final B second;
-
-        public Tuple(A first, B second)
-        {
-            this.first = first;
-            this.second = second;
-        }
-
-        public A getFirst()
-        {
-            return first;
-        }
-
-        public B getSecond()
-        {
-            return second;
-        }
-    }
 
     private String parseNameNode(Node node)
     {
@@ -100,7 +80,7 @@ public class Parser implements IParser
         return place;
     }
 
-    private Tuple<String, String> parseBirthNode(Node node)
+    private Pair<String, String> parseBirthNode(Node node)
     {
         NodeList childs = node.getChildNodes();
         String date = null;
@@ -125,7 +105,7 @@ public class Parser implements IParser
             else
                 place = place + " " + country;
         }
-        return new Tuple<String, String>(place, date);
+        return new Pair<String, String>(place, date);
     }
 
     private String parseCitizenNode(Node node)
@@ -155,7 +135,9 @@ public class Parser implements IParser
             {
                 Node node = entities.item(i);
 
-                SanctionListEntry entry = new SanctionListEntry();
+
+                SanctionListEntry entry = new SanctionListEntry("EU",
+                            node.getAttributes().getNamedItem("Type").getNodeValue().compareTo("P") == 0 ? SanctionListEntry.EntryType.PERSON : SanctionListEntry.EntryType.COMPANY);
 
                 NodeList childs = node.getChildNodes();
                 for (int j = 0; j < childs.getLength(); ++j)
@@ -166,33 +148,33 @@ public class Parser implements IParser
                     {
                         String name = parseNameNode(child);
                         if (name != null && name.trim().length() > 0)
-                            entry.names.add(name.trim());
+                            entry.names.add(Defines.sanitizeString(name));
 
                     }
                     else if (nodeName.compareTo("birth") == 0)
                     {
-                        Tuple<String, String>  birth = parseBirthNode(child);
+                        Pair<String, String> birth = parseBirthNode(child);
 
                         String pob = birth.getFirst();
                         String dob = birth.getSecond();
 
                         if (pob != null && pob.trim().length() > 0)
-                            entry.placesOfBirth.add(pob.trim());
+                            entry.placesOfBirth.add(Defines.sanitizeString(pob));
 
                         if (pob != null && dob.trim().length() > 0)
-                            entry.datesOfBirth.add(dob.trim());
+                            entry.datesOfBirth.add(Defines.sanitizeString(dob));
                     }
                     else if (nodeName.compareTo("citizen") == 0)
                     {
                         String nationality = parseCitizenNode(child);
                         if (nationality != null && nationality.trim().length() > 0)
-                            entry.nationalities.add(nationality);
+                            entry.nationalities.add(Defines.sanitizeString(nationality));
                     }
                     else if (nodeName.compareTo("address") == 0)
                     {
                         String address = parseAddressNode(child);
                         if (address != null && address.trim().length() > 0)
-                            entry.addresses.add(address);
+                            entry.addresses.add(Defines.sanitizeString(address));
                     }
                 }
 

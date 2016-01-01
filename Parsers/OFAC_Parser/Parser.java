@@ -44,44 +44,40 @@ public class Parser implements IParser
         try
         {
             String line;
-            do
-            {
-                StringBuilder entry = new StringBuilder();
-                while ((line = reader.readLine()) != null &&
-                        line.length() > 0)
-                    if (entry.length() > 0)
-                        entry.append(" ")
-                                .append(line);
-                    else
-                        entry.append(line);
-                if (line == null)
-                    break;
-                line = entry.toString();
+            StringBuilder entry = new StringBuilder();
+            while ((line = reader.readLine()) != null &&
+                    line.length() > 0)
+                if (entry.length() > 0)
+                    entry.append(" ")
+                            .append(line);
+                else
+                    entry.append(line);
+            line = entry.toString();
 
-                if (line.compareTo("_________________________________") == 0)
-                    return null;
+            if (line.compareTo("_________________________________") == 0)
+                return null;
 
-                if (line.contains("(individual)"))
-                    break;
-
-            } while (true);
+            if (line.trim().length() == 0)
+                return null;
 
 
-            if (line != null && line.contains("(individual)"))
+            SanctionListEntry e;
+            if (line.contains("(individual)"))
             {
                 int endPos = line.indexOf("(individual)");
                 line = line.substring(0, endPos);
                 EntryParser parser = new EntryParser(line);
-                return parser.parseIndividual();
+                e = parser.parseIndividual();
             }
-            return null;
-            /*
-            line = line.replaceAll("( \\[[A-Z]+\\])+\\.$", "");
-            System.out.println("Parsing OFAC Company: " + line);
-
-            EntryParser parser = new EntryParser(line);
-            return parser.parseCompany();
-            */
+            else
+            {
+                line = line.replaceAll("( \\[[A-Z]+\\])+\\.$", "");
+                EntryParser parser = new EntryParser(line);
+                e = parser.parseCompany();
+            }
+            if (e == null)
+                return getNextEntry();
+            return e;
 
         } catch (IOException e)
         {

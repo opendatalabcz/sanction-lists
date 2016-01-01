@@ -1,5 +1,6 @@
 package Parsers.BOE_Parser;
 
+import Helpers.Defines;
 import Parsers.IParser;
 import Parsers.SanctionListEntry;
 import com.opencsv.CSVReader;
@@ -18,13 +19,14 @@ public class Parser implements IParser
 
     private static final int NAME_START = 0;
     private static final int NAME_END = 6;
-    private static final int ADDRESS_START = 14;
-    private static final int ADDRESS_END = 23;
     private static final int DATE_OF_BIRTH = 7;
     private static final int PLACE_OF_BIRTH_START = 8;
     private static final int PLACE_OF_BIRTH_END = 10;
     private static final int NATIONATLITY = 10;
     // private static final int PASSPORT = 11;
+    private static final int ADDRESS_START = 14;
+    private static final int ADDRESS_END = 22;
+    private static final int ENTITY_TYPE = 23;
     private static final int GROUP_ID = 28;
 
 
@@ -77,28 +79,28 @@ public class Parser implements IParser
                 }
                 previousGroupId = groupId;
                 if (e == null)
-                    e = new SanctionListEntry();
+                    e = new SanctionListEntry("BOE", row[ENTITY_TYPE].trim().toLowerCase().compareTo("individual") == 0 ? SanctionListEntry.EntryType.PERSON : SanctionListEntry.EntryType.COMPANY);
 
                 String name = concatenateFields(row, NAME_START, NAME_END);
                 if (name != null && name.trim().length() > 0)
-                    e.names.add(name.trim());
+                    e.names.add(Defines.sanitizeString(name));
 
                 String address = concatenateFields(row, ADDRESS_START, ADDRESS_END);
                 if (address != null && address.trim().length() > 0)
-                    e.addresses.add(address.trim());
+                    e.addresses.add(Defines.sanitizeString(address));
 
 
                 String place_of_birth = concatenateFields(row, PLACE_OF_BIRTH_START, PLACE_OF_BIRTH_END);
                 if (place_of_birth != null && place_of_birth.trim().length() > 0)
-                    e.placesOfBirth.add(place_of_birth.trim());
+                    e.placesOfBirth.add(Defines.sanitizeString(place_of_birth));
 
                 String nationality = row[NATIONATLITY];
                 if (nationality != null && nationality.trim().length() > 0)
-                    e.nationalities.add(nationality.trim());
+                    e.nationalities.add(Defines.sanitizeString(nationality));
 
                 String dob = row[DATE_OF_BIRTH].trim();
                 if (dob.length() > 0)
-                    e.datesOfBirth.add(dob);
+                    e.datesOfBirth.add(Defines.sanitizeString(dob));
             }
         } catch (IOException e)
         {
