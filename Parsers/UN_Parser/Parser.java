@@ -20,8 +20,11 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Stack;
 
+import static Helpers.Defines.replaceCountryAbbreviation;
+import static Helpers.Defines.replaceNationalityAdjective;
+
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class Parser implements IParser
 {
@@ -188,17 +191,17 @@ public class Parser implements IParser
                 {
                     String birth = parseBirthPlaceNode(child);
                     if (birth != null && birth.trim().length() > 0)
-                        entry.placesOfBirth.add(Defines.sanitizeString(birth));
+                        entry.placesOfBirth.add(replaceCountryAbbreviation(Defines.sanitizeString(birth)));
                 } else if (nodeName.compareTo("nationality") == 0)
                 {
                     String nationality = parseNationalityNode(child);
                     if (nationality != null && nationality.trim().length() > 0)
-                        entry.nationalities.add(Defines.sanitizeString(nationality));
+                        entry.nationalities.add(replaceNationalityAdjective(replaceCountryAbbreviation(Defines.sanitizeString(nationality))));
                 } else if (nodeName.compareTo(prefix + "address") == 0)
                 {
                     String address = parseAddressNode(child);
                     if (address != null && address.trim().length() > 0)
-                        entry.addresses.add(Defines.sanitizeString(address));
+                        entry.addresses.add(replaceCountryAbbreviation(Defines.sanitizeString(address)));
                 }
             }
 
@@ -218,7 +221,6 @@ public class Parser implements IParser
         }
     }
 
-    @Override
     public void initialize(InputStream stream)
     {
         try
@@ -246,7 +248,6 @@ public class Parser implements IParser
         }
     }
 
-    @Override
     public SanctionListEntry getNextEntry()
     {
         if (list.size() == 0)

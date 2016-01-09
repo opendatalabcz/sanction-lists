@@ -4,7 +4,7 @@ package Parsers;
 import java.io.InputStream;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public interface IParser
 {

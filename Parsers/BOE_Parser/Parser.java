@@ -1,5 +1,6 @@
 package Parsers.BOE_Parser;
 
+import Helpers.CompanyReference;
 import Helpers.Defines;
 import Parsers.IParser;
 import Parsers.SanctionListEntry;
@@ -9,9 +10,14 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static Helpers.Defines.replaceCountryAbbreviation;
+import static Helpers.Defines.replaceNationalityAdjective;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class Parser implements IParser
 {
@@ -32,7 +38,6 @@ public class Parser implements IParser
 
     private static class RowComparator implements Comparator<String []>, Serializable
     {
-        @Override
         public int compare(String[] o1, String[] o2)
         {
             return Integer.parseInt(o1[GROUP_ID]) - Integer.parseInt(o2[GROUP_ID]);
@@ -54,7 +59,6 @@ public class Parser implements IParser
         return tmp.length() == 0 ? null : tmp.toString();
     }
 
-    @Override
     public void initialize(InputStream stream)
     {
         try
@@ -87,16 +91,40 @@ public class Parser implements IParser
 
                 String address = concatenateFields(row, ADDRESS_START, ADDRESS_END);
                 if (address != null && address.trim().length() > 0)
-                    e.addresses.add(Defines.sanitizeString(address));
+                {
+                    address = address.trim();
+                    if (address.toLowerCase().contains("c/o"))
+                    {
+                        Pattern p = Pattern.compile("^(c/o|C/O) ([A-Za-z0-9&'@() .-]|\"\")+(, ([A-Z() .-]|\"\"|)+)*(,|\"|$)");
+                        Matcher m = p.matcher(address);
+                        String company;
+
+                        while (m.find())
+                        {
+                            company = address.substring(m.start() + 3, m.end());
+                            address = address.substring(m.end());
+                            e.companies.add(new CompanyReference(Defines.sanitizeString(company), replaceCountryAbbreviation(Defines.sanitizeString(address))));
+                        }
+                    }
+                    e.addresses.add(replaceCountryAbbreviation(Defines.sanitizeString(address)));
+                }
 
 
                 String place_of_birth = concatenateFields(row, PLACE_OF_BIRTH_START, PLACE_OF_BIRTH_END);
                 if (place_of_birth != null && place_of_birth.trim().length() > 0)
-                    e.placesOfBirth.add(Defines.sanitizeString(place_of_birth));
+                    e.placesOfBirth.add(replaceCountryAbbreviation(Defines.sanitizeString(place_of_birth)));
 
                 String nationality = row[NATIONATLITY];
                 if (nationality != null && nationality.trim().length() > 0)
-                    e.nationalities.add(Defines.sanitizeString(nationality));
+                {
+                    for (String n : nationality.split("(((^|\\(| )[1-9]\\))|((^|, )[a-z]\\)))"))
+                        if (n.trim().length() > 0)
+                        {
+                            n = n.replaceAll("(possibly|Possibly) ", "").
+                                    replaceAll("citizenship$", "");
+                            e.nationalities.add(replaceNationalityAdjective(replaceCountryAbbreviation(Defines.sanitizeString(n))));
+                        }
+                }
 
                 String dob = row[DATE_OF_BIRTH].trim();
                 if (dob.length() > 0)
@@ -108,7 +136,6 @@ public class Parser implements IParser
         }
     }
 
-    @Override
     public SanctionListEntry getNextEntry()
     {
         if (list.size() == 0)

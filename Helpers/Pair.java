@@ -1,12 +1,12 @@
 package Helpers;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class Pair<A, B>
 {
-    final A first;
-    final B second;
+    private final A first;
+    private final B second;
 
     public Pair(A first, B second)
     {

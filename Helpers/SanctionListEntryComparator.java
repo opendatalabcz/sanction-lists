@@ -8,17 +8,19 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * Class representing thread used for speed up comparing of entries
+ *
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class SanctionListEntryComparator extends Thread implements Runnable
 {
-    final int startPos;
-    final int endPos;
-    final int maxLength;
-    final double minAccuracy;
-    SanctionListEntry[] entries;
-    NameMatchingAlgorithm algorithm;
-    protected Map<Integer, TreeSet<Integer>> matches = new TreeMap<Integer, TreeSet<Integer> >();
+    private final int startPos;
+    private final int endPos;
+    private final int maxLength;
+    private final double minAccuracy;
+    private SanctionListEntry[] entries;
+    private NameMatchingAlgorithm algorithm;
+    private Map<Integer, TreeSet<Integer>> matches = new TreeMap<Integer, TreeSet<Integer> >();
 
     @Override
     public void run()
@@ -57,6 +59,14 @@ public class SanctionListEntryComparator extends Thread implements Runnable
         }
     }
 
+    /**
+     * @param startPos First entry to start
+     * @param endPos
+     * @param maxLength
+     * @param minAccuracy
+     * @param entries
+     * @param algorithm
+     */
     public SanctionListEntryComparator(int startPos, int endPos, int maxLength, double minAccuracy, SanctionListEntry[] entries, NameMatchingAlgorithm algorithm)
     {
         this.startPos = startPos;

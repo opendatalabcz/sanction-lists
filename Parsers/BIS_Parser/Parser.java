@@ -1,5 +1,6 @@
 package Parsers.BIS_Parser;
 
+import Helpers.CompanyReference;
 import Helpers.Defines;
 import Parsers.IParser;
 import Parsers.SanctionListEntry;
@@ -9,9 +10,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static Helpers.Defines.replaceCountryAbbreviation;
+import static Helpers.Defines.replaceNationalityAdjective;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class Parser implements IParser
 {
@@ -29,7 +35,6 @@ public class Parser implements IParser
 
 
 
-    @Override
     public void initialize(InputStream stream)
     {
         try
@@ -42,7 +47,6 @@ public class Parser implements IParser
         }
     }
 
-    @Override
     public SanctionListEntry getNextEntry()
     {
         String[] line;
@@ -62,7 +66,23 @@ public class Parser implements IParser
 
         for (String address : line[ADDRESS].split(";"))
             if (address.trim().length() > 0)
-                e.addresses.add(Defines.sanitizeString(address));
+            {
+                address = address.trim();
+                if (address.toLowerCase().contains("c/o"))
+                {
+                    Pattern p = Pattern.compile("^(c/o|C/O) ([A-Za-z0-9&'@() .-]|\"\")+(, ([A-Z() .-]|\"\"|)+)*(,|\"|$)");
+                    Matcher m = p.matcher(address);
+                    String company;
+
+                    while (m.find())
+                    {
+                        company = address.substring(m.start() + 3, m.end());
+                        address = address.substring(m.end());
+                        e.companies.add(new CompanyReference(Defines.sanitizeString(company), replaceCountryAbbreviation(Defines.sanitizeString(address))));
+                    }
+                }
+                e.addresses.add(replaceCountryAbbreviation(Defines.sanitizeString(address)));
+            }
 
         for (String alias : line[ALIASES].split(";"))
             if (alias.trim().length() > 0)
@@ -74,11 +94,11 @@ public class Parser implements IParser
 
         for (String pob : line[PLACE_OF_BIRTH].split(";"))
             if (pob.trim().length() > 0)
-                e.placesOfBirth.add(Defines.sanitizeString(pob));
+                e.placesOfBirth.add(replaceCountryAbbreviation(Defines.sanitizeString(pob)));
 
         for (String nationality : line[NATIONALITY].split(";"))
             if (nationality.trim().length() > 0)
-                e.nationalities.add(Defines.sanitizeString(nationality));
+                e.nationalities.add(replaceNationalityAdjective(replaceCountryAbbreviation(Defines.sanitizeString(nationality))));
 
         return e;
     }

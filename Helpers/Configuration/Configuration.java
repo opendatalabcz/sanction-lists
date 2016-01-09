@@ -5,78 +5,93 @@ import Helpers.Configuration.Exceptions.EUndefinedProperty;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class Configuration
 {
-    Properties defaultProperties = new Properties();
-    Properties properties;
+    private Properties defaultProperties = new Properties();
+    private Properties properties;
 
-    Property[] definedProperties = new Property[]{
+    /**
+     * Set of default properties, including their types, names, if they can be empty and default values
+     */
+    private Property[] definedProperties = new Property[]{
             // Percent Properties
-            new Property(PropertyTypes.PROPERTY_PERCENT, "DamerauLevenshtein_Match_Minimal_Accuracy", false, "95"),
-            new Property(PropertyTypes.PROPERTY_PERCENT, "Levenshtein_Match_Minimal_Accuracy", false, "93"),
-            new Property(PropertyTypes.PROPERTY_PERCENT, "LIG_Match_Minimal_Accuracy", false, "90"),
-            new Property(PropertyTypes.PROPERTY_PERCENT, "LIG2_Match_Minimal_Accuracy", false, "90"),
-            new Property(PropertyTypes.PROPERTY_PERCENT, "LIG3_Match_Minimal_Accuracy", false, "95"),
-            new Property(PropertyTypes.PROPERTY_PERCENT, "Guth_Match_Minimal_Accuracy", false, "90"),
-            new Property(PropertyTypes.PROPERTY_PERCENT, "Soundex_Match_Minimal_Accuracy", false, "90"),
-            new Property(PropertyTypes.PROPERTY_PERCENT, "Phonex_Match_Minimal_Accuracy", false, "90"),
+            new Property(PropertyTypes.PROPERTY_PERCENT, "DamerauLevenshtein_Match_Minimal_Accuracy", false),
+            new Property(PropertyTypes.PROPERTY_PERCENT, "Levenshtein_Match_Minimal_Accuracy", false),
+            new Property(PropertyTypes.PROPERTY_PERCENT, "LIG_Match_Minimal_Accuracy", false),
+            new Property(PropertyTypes.PROPERTY_PERCENT, "LIG2_Match_Minimal_Accuracy", false),
+            new Property(PropertyTypes.PROPERTY_PERCENT, "LIG3_Match_Minimal_Accuracy", false),
+            new Property(PropertyTypes.PROPERTY_PERCENT, "Guth_Match_Minimal_Accuracy", false),
+            new Property(PropertyTypes.PROPERTY_PERCENT, "Soundex_Match_Minimal_Accuracy", false),
+            new Property(PropertyTypes.PROPERTY_PERCENT, "Phonex_Match_Minimal_Accuracy", false),
 
             // URL Properties
-            new Property(PropertyTypes.PROPERTY_URL, "BIS_URL", false, "https://api.trade.gov/consolidated_screening_list/search.csv?api_key=OHZYuksFHSFao8jDXTkfiypO"),
-            new Property(PropertyTypes.PROPERTY_URL, "BOE_URL", false, "http://hmt-sanctions.s3.amazonaws.com/sanctionsconlist.csv"),
-            new Property(PropertyTypes.PROPERTY_URL, "UN_URL", false, "https://www.un.org/sc/suborg/sites/www.un.org.sc.suborg/files/consolidated.xml"),
-            new Property(PropertyTypes.PROPERTY_URL, "OFAC_URL", false, "https://www.treasury.gov/ofac/downloads/sdnlist.txt"),
-            new Property(PropertyTypes.PROPERTY_URL, "EU_URL", false, "http://ec.europa.eu/external_relations/cfsp/sanctions/list/version4/global/global.xml"),
-            new Property(PropertyTypes.PROPERTY_URL, "NPS_URL", false, "http://www.state.gov/t/isn/226423.htm"),
+            new Property(PropertyTypes.PROPERTY_URL, "BIS_URL", false),
+            new Property(PropertyTypes.PROPERTY_URL, "BOE_URL", false),
+            new Property(PropertyTypes.PROPERTY_URL, "UN_URL", false),
+            new Property(PropertyTypes.PROPERTY_URL, "OFAC_URL", false),
+            new Property(PropertyTypes.PROPERTY_URL, "EU_URL", false),
+            new Property(PropertyTypes.PROPERTY_URL, "NPS_URL", false),
 
             // Boolean Properties
-            new Property(PropertyTypes.PROPERTY_BOOLEAN, "DamerauLevenshtein_Matching", false, "no  "),
-            new Property(PropertyTypes.PROPERTY_BOOLEAN, "Levenshtein_Matching", false, "yes"),
-            new Property(PropertyTypes.PROPERTY_BOOLEAN, "LIG_Matching", false, "no"),
-            new Property(PropertyTypes.PROPERTY_BOOLEAN, "LIG2_Matching", false, "no"),
-            new Property(PropertyTypes.PROPERTY_BOOLEAN, "LIG3_Matching", false, "yes"),
-            new Property(PropertyTypes.PROPERTY_BOOLEAN, "Guth_Matching", false, "no"),
-            new Property(PropertyTypes.PROPERTY_BOOLEAN, "Soundex_Matching", false, "no"),
-            new Property(PropertyTypes.PROPERTY_BOOLEAN, "Phonex_Matching", false, "no"),
+            new Property(PropertyTypes.PROPERTY_BOOLEAN, "DamerauLevenshtein_Matching", false),
+            new Property(PropertyTypes.PROPERTY_BOOLEAN, "Levenshtein_Matching", false),
+            new Property(PropertyTypes.PROPERTY_BOOLEAN, "LIG_Matching", false),
+            new Property(PropertyTypes.PROPERTY_BOOLEAN, "LIG2_Matching", false),
+            new Property(PropertyTypes.PROPERTY_BOOLEAN, "LIG3_Matching", false),
+            new Property(PropertyTypes.PROPERTY_BOOLEAN, "Guth_Matching", false),
+            new Property(PropertyTypes.PROPERTY_BOOLEAN, "Soundex_Matching", false),
+            new Property(PropertyTypes.PROPERTY_BOOLEAN, "Phonex_Matching", false),
 
             // Unsigned Properties
-            new Property(PropertyTypes.PROPERTY_UNSIGNED, "Matching_Threads", false, "8"),
+            new Property(PropertyTypes.PROPERTY_UNSIGNED, "Matching_Threads", false),
 
             // String Properties
-            new Property(PropertyTypes.PROPERTY_STRING, "Database_Host", false, "localhost"),
-            new Property(PropertyTypes.PROPERTY_STRING, "Database_Port", true, "5432"),
-            new Property(PropertyTypes.PROPERTY_STRING, "Database_User", false, "sankcni_seznamy"),
-            new Property(PropertyTypes.PROPERTY_STRING, "Database_Password", false, "sankcni_seznamy"),
-            new Property(PropertyTypes.PROPERTY_STRING, "Database_Schema", false, "sankcni_seznamy"),
+            new Property(PropertyTypes.PROPERTY_STRING, "Database_Host", false),
+            new Property(PropertyTypes.PROPERTY_STRING, "Database_Port", true),
+            new Property(PropertyTypes.PROPERTY_STRING, "Database_User", false),
+            new Property(PropertyTypes.PROPERTY_STRING, "Database_Password", false),
+            new Property(PropertyTypes.PROPERTY_STRING, "Database_Schema", false),
     };
 
-    protected static final String propertiesFile = "SankcniSeznamy.properties";
-    protected final static Configuration instance = new Configuration();
+    /**
+     * Properties file name
+     */
+    private static final String propertiesFile = "SanctionLists.properties";
+    private final static Configuration instance = new Configuration();
 
-    public Configuration()
+    private Configuration()
     {
         loadDefaultConfiguration();
         loadConfiguration(Configuration.propertiesFile);
         checkConfiguration();
     }
 
-
-    protected void loadDefaultConfiguration()
+    private void loadDefaultConfiguration()
     {
-        for (Property p : definedProperties)
-            defaultProperties.setProperty(p.getName(), p.getDefaultValue());
-
+        InputStream s;
+        try
+        {
+            s = Configuration.class.getResourceAsStream("/" + propertiesFile);
+            defaultProperties.load(s);
+            s.close();
+        } catch (IOException e)
+        {
+            System.err.println("Failed to load default configuration");
+            e.printStackTrace();
+            System.exit(1);
+        }
         properties = new Properties(defaultProperties);
     }
 
-    protected void loadConfiguration(String propertiesFile)
+    private void loadConfiguration(String propertiesFile)
     {
         if (!(new File(propertiesFile)).exists())
             System.out.println("Missing properties file, using default values");
@@ -104,8 +119,12 @@ public class Configuration
             }
         }
     }
-    
-    protected void checkConfiguration()
+
+    /**
+     * Checks all properties against their types,
+     * if property is not valid, changes its value to default
+     */
+    private void checkConfiguration()
     {
         for (Property p : definedProperties)
         {
@@ -128,8 +147,22 @@ public class Configuration
         }
     }
 
-
-    protected boolean checkPropertyType(String propertyName, PropertyTypes type, boolean allowEmpty) throws EUndefinedProperty
+    /**
+     * Checks value of supplied property against predefined rules
+     *
+     * i.e.
+     * <ul>
+     *     <li>unsigned value must be greater or equal to zero,</li>
+     *     <li>boolean value can be represented as "yes", "no", "true, "false"</li>
+     * </ul>
+     *
+     * @param propertyName
+     * @param type
+     * @param allowEmpty
+     * @return True if property is valid, otherwise false
+     * @throws EUndefinedProperty
+     */
+    private boolean checkPropertyType(String propertyName, PropertyTypes type, boolean allowEmpty) throws EUndefinedProperty
     {
         String value = properties.getProperty(propertyName);
 

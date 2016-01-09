@@ -1,7 +1,7 @@
 package Helpers.Configuration.Exceptions;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class EUndefinedProperty extends Exception
 {

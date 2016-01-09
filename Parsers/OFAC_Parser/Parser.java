@@ -9,14 +9,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class Parser implements IParser
 {
     private BufferedReader reader;
 
 
-    @Override
     public void initialize(InputStream stream)
     {
         try
@@ -38,7 +37,6 @@ public class Parser implements IParser
         }
     }
 
-    @Override
     public SanctionListEntry getNextEntry()
     {
         try

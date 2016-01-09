@@ -5,13 +5,14 @@ import Helpers.CompanyReference;
 import java.util.HashSet;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class SanctionListEntry implements Comparable
 {
     public enum EntryType {
         PERSON,
-        COMPANY
+        COMPANY,
+        UNKNOWN
     }
 
     public final HashSet<String> names = new HashSet<String>();
@@ -20,14 +21,14 @@ public class SanctionListEntry implements Comparable
     public final HashSet<String> placesOfBirth = new HashSet<String>();
     public final HashSet<String> datesOfBirth = new HashSet<String>();
     public final HashSet<CompanyReference> companies = new HashSet<CompanyReference>();
-    public final EntryType entryType;
+    public EntryType entryType;
 
 
     public final HashSet<String> sources = new HashSet<String>();
     public final int id;
     static private int _lastId = 0;
 
-    @Override
+
     public int compareTo(Object o)
     {
         return id - ((SanctionListEntry) o).id;
@@ -44,6 +45,9 @@ public class SanctionListEntry implements Comparable
     
     public void merge(SanctionListEntry e)
     {
+        if (entryType == EntryType.UNKNOWN)
+            entryType = e.entryType;
+
         names.addAll(e.names);
         addresses.addAll(e.addresses);
         nationalities.addAll(e.nationalities);

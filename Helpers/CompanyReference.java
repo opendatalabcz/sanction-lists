@@ -1,18 +1,18 @@
 package Helpers;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class CompanyReference
 {
-    String name;
-    String address;
-    int referencedId;
+    private String name;
+    private String address;
+    private int referencedId;
 
     @Override
     public boolean equals(Object obj)
     {
-        return name.equals(((CompanyReference) obj).name);
+        return obj != null && name.equals(((CompanyReference) obj).name);
     }
 
     @Override
@@ -28,7 +28,6 @@ public class CompanyReference
 
     public String getName()
     {
-
         return name;
     }
 
@@ -46,13 +45,5 @@ public class CompanyReference
     public int getReferencedId()
     {
         return referencedId;
-    }
-
-    public CompanyReference(String name, String address, int referencedId)
-    {
-
-        this.name = name;
-        this.address = address;
-        this.referencedId = referencedId;
     }
 }

@@ -19,13 +19,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Stack;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class Parser implements IParser
 {
     private final Stack<SanctionListEntry> list = new Stack<SanctionListEntry>();
 
-    @Override
     public void initialize(InputStream stream)
     {
         StringBuilder contentCacher = new StringBuilder("<?xml version=\"1.0\"?>\n");
@@ -76,8 +75,7 @@ public class Parser implements IParser
                 if (!childs.item(4).getTextContent().toLowerCase().contains("active"))
                     continue;
 
-                SanctionListEntry entry = new SanctionListEntry("NPS",
-                        /*node.getAttributes().getNamedItem("Type").getNodeValue() == "P" ? SanctionListEntry.EntryType.PERSON : */ SanctionListEntry.EntryType.COMPANY);
+                SanctionListEntry entry = new SanctionListEntry("NPS", SanctionListEntry.EntryType.UNKNOWN);
 
                 String name = childs.item(1).getTextContent()
                                     .replaceAll("<[/]?p>", "")
@@ -103,7 +101,6 @@ public class Parser implements IParser
         }
     }
 
-    @Override
     public SanctionListEntry getNextEntry()
     {
         if (list.size() == 0)

@@ -7,8 +7,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
+import static Helpers.Defines.replaceCountryAbbreviation;
+import static Helpers.Defines.replaceNationalityAdjective;
+
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 
 
@@ -301,7 +304,7 @@ public class EntryParser
         return parseSimpleString();
     }
 
-    public HashSet<CompanyReference> parseCompanyReference(Set<String> companyNames) throws ESyntaxError
+    private HashSet<CompanyReference> parseCompanyReference(Set<String> companyNames) throws ESyntaxError
     {
         HashSet<CompanyReference> out = new HashSet<CompanyReference>();
         consume(SymbolType.KW_CO);
@@ -309,7 +312,7 @@ public class EntryParser
         String companyAddress = null;
         if (currentSymbol.type == SymbolType.COMMA)
         {
-            companyAddress = parseSimpleString();
+            companyAddress = replaceCountryAbbreviation(parseSimpleString());
             if (companyAddress.compareTo("undetermined") == 0)
                 companyAddress = null;
         }
@@ -352,7 +355,7 @@ public class EntryParser
                 if (currentSymbol.type != SymbolType.SEMICOLON &&
                         currentSymbol.type != SymbolType.EOL)
                 {
-                    String address = parseSimpleString();
+                    String address = replaceCountryAbbreviation(parseSimpleString());
                     if (address.length() > 0)
                         entry.addresses.add(address);
                 }
@@ -370,7 +373,7 @@ public class EntryParser
                         break;
 
                     case KW_POB:
-                        entry.placesOfBirth.add(parseSimpleField(currentSymbol.type));
+                        entry.placesOfBirth.add(replaceCountryAbbreviation(parseSimpleField(currentSymbol.type)));
                         break;
 
                     case KW_CITIZEN:
@@ -378,7 +381,7 @@ public class EntryParser
                         break;
 
                     case KW_NATIONALITY:
-                        entry.nationalities.add(parseSimpleField(currentSymbol.type));
+                        entry.nationalities.add(replaceNationalityAdjective(replaceCountryAbbreviation(parseSimpleField(currentSymbol.type))));
                         break;
 
                     case KW_CO:
@@ -401,7 +404,7 @@ public class EntryParser
         return entry;
     }
 
-    protected String parseCompanyName() throws ESyntaxError
+    private String parseCompanyName() throws ESyntaxError
     {
         // System.out.println("[parseCompanyName]");
         String name;
@@ -513,7 +516,7 @@ public class EntryParser
                 if (currentSymbol.type != SymbolType.SEMICOLON &&
                         currentSymbol.type != SymbolType.EOL)
                 {
-                    String address = parseSimpleString();
+                    String address = replaceCountryAbbreviation(parseSimpleString());
                     if (address.length() > 0)
                         entry.addresses.add(address);
                 }
@@ -542,8 +545,11 @@ public class EntryParser
                         String line = b.toString().replace(",", " ")
                                                     .replaceAll("[ \t]{2,}", " ")
                                                     .trim();
+                        line = replaceCountryAbbreviation(line);
 
-                        if (Defines.countriesSet.contains(line.substring(line.lastIndexOf(' ') + 1)))
+                        String probableCountry = line.substring(line.lastIndexOf(' ') + 1).toUpperCase();
+
+                        if (Defines.countriesSet.contains(probableCountry))
                             entry.addresses.add(line);
                 }
             }

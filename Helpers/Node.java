@@ -4,7 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author Peter Babics <babicpe1@fit.cvut.cz>
+ *  Node representation of undirected graph
+ *
+ * @author Peter Babics &lt;babicpe1@fit.cvut.cz&gt;
  */
 public class Node<T>
 {
