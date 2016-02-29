@@ -164,6 +164,17 @@ In Thrid phase we insert company references (name, address, referenced id)
 using id from first step as primary key and referenced key (if referenced entry is also in entity list)
 
 
+## Instalation:
+
+To build project use following:
+```
+mvn install
+```
+
+Output *jar*-s are in *target* dirbectory.
+You **have** to configure database connector properties (i.e Username, Password, Schema) in *SanctionLists.properties* file which is also in target directory.
+
+
 ## Tasks:
 - chybí komentáře v kódu (hlavně v package stringmatching je to must have)
 

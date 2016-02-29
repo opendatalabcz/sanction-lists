@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.profinit.sanction_lists</groupId>
-    <artifactId>eu.profinit.sankcniseznamy.Fetcher</artifactId>
+    <artifactId>SanctionLists</artifactId>
     <version>1.0</version>
 
     <properties>
@@ -55,7 +55,19 @@
 
     <build>
         <plugins>
-            <!-- Maven Assembly Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>eu.profinit.sankcniseznamy.DataFetcher</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -66,7 +78,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>eu.profinit.sankcniseznamy.Fetcher</mainClass>
+                            <mainClass>eu.profinit.sankcniseznamy.DataFetcher</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -96,7 +108,36 @@
                 <artifactId>maven-project-info-reports-plugin</artifactId>
                 <version>2.6</version>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>*.xml</include>
+                                        <include>*.properties</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
+
     </build>
+
 
 </project>

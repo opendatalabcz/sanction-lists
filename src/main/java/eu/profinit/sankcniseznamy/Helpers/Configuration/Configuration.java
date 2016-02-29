@@ -1,6 +1,7 @@
 package eu.profinit.sankcniseznamy.Helpers.Configuration;
 
 import eu.profinit.sankcniseznamy.Helpers.Configuration.Exceptions.EUndefinedProperty;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -124,13 +125,20 @@ public class Configuration
      */
     private void checkConfiguration()
     {
+        boolean exit = false;
         for (Property p : definedProperties)
         {
             try
             {
                 if (!checkPropertyType(p.getName(), p.getType(), p.isAllowEmpty()))
                 {
-                    LOGGER.error("Property: '%s' has invalid value ('%s'), falling back to default: '%s'" + System.lineSeparator(),
+                    if (exit = !(defaultProperties.getProperty(p.getName()) != properties.getProperty(p.getName())))
+                        LOGGER.printf(Level.ERROR, "Property: '%s' has invalid value ('%s'), please set it properly !",
+                                p.getName(),
+                                properties.getProperty(p.getName()),
+                                defaultProperties.getProperty(p.getName()));
+                    else
+                        LOGGER.printf(Level.ERROR, "Property: '%s' has invalid value ('%s'), falling back to default: '%s'",
                             p.getName(),
                             properties.getProperty(p.getName()),
                             defaultProperties.getProperty(p.getName()));
@@ -142,6 +150,12 @@ public class Configuration
             {
                 LOGGER.error(eUndefinedProperty.getMessage());
             }
+        }
+
+        if (exit)
+        {
+            LOGGER.error("One or more properties were invalid and they need to be defined... For now, exiting");
+            System.exit(1);
         }
     }
 
