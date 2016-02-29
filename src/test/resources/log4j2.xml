@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %class{1} - %method - %msg%n"/>
+        </Console>
+
+        <!--
+        <File name="DefualtFileLog" fileName="SanctionLists.log">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %class{1} - %method - %msg%n"/>
+        </File>
+        -->
+    </Appenders>
+    <Loggers>
+        <Root level="trace">
+            <!--
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="DefualtFileLog"/>
+            -->
+        </Root>
+    </Loggers>
+</Configuration>
