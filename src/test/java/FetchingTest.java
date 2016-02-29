@@ -1,8 +1,6 @@
 import eu.profinit.sankcniseznamy.DataFetcher;
-import eu.profinit.sankcniseznamy.Helpers.Defines;
 import eu.profinit.sankcniseznamy.Parsers.*;
 import junit.framework.TestCase;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.InputStream;
 import java.util.*;
@@ -88,13 +86,6 @@ public class FetchingTest extends TestCase
 
     public void testNationalitiesList() throws Exception
     {
-        Set<String> n = new HashSet<>(Defines.COUNTRIES_SET);
-        System.out.println("Nation size:" + n.size());
-        for (String e : nationalities)
-            n.remove(e.toUpperCase());
-        for (String e : n)
-            System.out.println("assertFalse(nationalitiesCounts.containsKey(\"" + StringUtils.capitalize(e.toLowerCase()) + "\"));" );
-
         assertEquals(1, nationalitiesCounts.get("Myanmar").intValue());
         assertEquals(19, nationalitiesCounts.get("Sudan").intValue());
         assertEquals(7, nationalitiesCounts.get("Malaysia").intValue());

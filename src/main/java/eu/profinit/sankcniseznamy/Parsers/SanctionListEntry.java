@@ -1,6 +1,5 @@
 package eu.profinit.sankcniseznamy.Parsers;
 
-import com.sun.istack.internal.NotNull;
 import eu.profinit.sankcniseznamy.Helpers.CompanyReference;
 
 import java.util.HashSet;
@@ -36,7 +35,6 @@ public class SanctionListEntry implements Comparable
     protected final int id;
     static private int _lastId = 0;
 
-    @NotNull
     public int compareTo(Object o)
     {
         return id - ((SanctionListEntry) o).id;
