@@ -72,7 +72,7 @@ public class Configuration
             new Property(PropertyTypes.PROPERTY_STRING, "Database_Port", true),
             new Property(PropertyTypes.PROPERTY_STRING, "Database_User", false),
             new Property(PropertyTypes.PROPERTY_STRING, "Database_Password", false),
-            new Property(PropertyTypes.PROPERTY_STRING, "Database_Schema", false),
+            new Property(PropertyTypes.PROPERTY_STRING, "Database_Name", false),
     };
 
     /**
@@ -132,7 +132,7 @@ public class Configuration
             {
                 if (!checkPropertyType(p.getName(), p.getType(), p.isAllowEmpty()))
                 {
-                    if (exit = !(defaultProperties.getProperty(p.getName()) != properties.getProperty(p.getName())))
+                    if (exit = (defaultProperties.getProperty(p.getName()).compareTo(properties.getProperty(p.getName())) == 0))
                         LOGGER.printf(Level.ERROR, "Property: '%s' has invalid value ('%s'), please set it properly !",
                                 p.getName(),
                                 properties.getProperty(p.getName()),

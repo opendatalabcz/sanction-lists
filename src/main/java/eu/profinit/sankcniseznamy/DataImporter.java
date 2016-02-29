@@ -39,7 +39,7 @@ public class DataImporter
             this.db = new DatabaseConnector(Configuration.getStringValue("Database_Host"),
                     Configuration.getStringValue("Database_User"),
                     Configuration.getStringValue("Database_Password"),
-                    Configuration.getStringValue("Database_Schema"),
+                    Configuration.getStringValue("Database_Name"),
                     Configuration.getStringValue("Database_Port"));
         } catch (SQLException e)
         {
