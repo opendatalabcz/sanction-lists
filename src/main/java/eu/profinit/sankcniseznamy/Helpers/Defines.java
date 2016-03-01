@@ -604,21 +604,23 @@ final public class Defines
      */
     public static Date parseDate(String date)
     {
-        SimpleDateFormat format = new SimpleDateFormat();
+
+        String pattern;
         if (date.matches("^(((3[01]|[12][0-9]|[0]?[1-9]|00)/)?(1[012]|[0]?[1-9]|00|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/)?((19|20)[0-9]{2})$"))
-            format.applyPattern(createPattern(date, "/"));
+            pattern = createPattern(date, "/");
         else if (date.matches("^(((3[01]|[12][0-9]|[0]?[1-9]|00) )?(1[012]|[0]?[1-9]|00|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) )?((19|20)[0-9]{2})$"))
-            format.applyPattern(createPattern(date, " "));
+            pattern = createPattern(date, " ");
         else if (date.matches("^(((3[01]|[12][0-9]|[0]?[1-9]|00)-)?(1[012]|[0]?[1-9]|00|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-)?((19|20)[0-9]{2})$"))
-            format.applyPattern(createPattern(date, " "));
+            pattern = createPattern(date, " ");
         else if (date.matches("^((19|20)[0-9]{2})-(1[012]|[0]?[1-9])-(3[01]|[12][0-9]|[0]?[1-9]|00)$"))
-            format.applyPattern("yyyy-MM-dd");
+            pattern = "yyyy-MM-dd";
         else
         {
             LOGGER.error("Date in unknown format: '" + date + "'");
             return null;
         }
 
+        SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.ENGLISH);
         try
         {
             return format.parse(date);
