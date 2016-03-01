@@ -41,14 +41,18 @@ public class DataImporter
                     Configuration.getStringValue("Database_Password"),
                     Configuration.getStringValue("Database_Name"),
                     Configuration.getStringValue("Database_Port"));
+
         } catch (SQLException e)
         {
             LOGGER.error("Cannot connect to Database: " + e.getMessage());
             e.printStackTrace();
+            System.exit(1);
+
         } catch (EUndefinedProperty eUndefinedProperty)
         {
             LOGGER.error("Missing database configuration: " + eUndefinedProperty.getMessage());
             eUndefinedProperty.printStackTrace();
+            System.exit(1);
         }
     }
 
@@ -71,6 +75,7 @@ public class DataImporter
         {
             LOGGER.error("Failed to truncate entries: " + e.getMessage());
             e.printStackTrace();
+            System.exit(1);
         }
     }
 

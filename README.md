@@ -174,6 +174,24 @@ mvn install
 Output *jar*-s are in *target* dirbectory.
 You **have** to configure database connector properties (i.e Username, Password, Schema) in *SanctionLists.properties* file which is also in target directory.
 
+After creating required database structure, it is important to run, to fix access privileges:
+```SQL
+GRANT ALL ON SCHEMA PUBLIC TO PUBLIC;
+GRANT ALL ON TABLE
+   addresses, entries, entry_addresses,
+   entry_companies, entry_names, entry_nationalities,
+   entry_places_of_birth, nationalities
+   TO <USER>;
+
+
+ALTER TABLE nationalities TO <USER>;
+ALTER TABLE addresses OWNER TO <USER>;
+ALTER TABLE entries OWNER TO <USER>;
+
+ALTER SEQUENCE nationalities_nationality_id_seq OWNER TO <USER>;
+ALTER SEQUENCE addresses_address_id_seq OWNER TO <USER>;
+ALTER SEQUENCE entries_id_seq OWNER TO <USER>;
+```
 
 ## Tasks:
 - chybí komentáře v kódu (hlavně v package stringmatching je to must have)

@@ -9,7 +9,6 @@ package eu.profinit.sankcniseznamy.StringMatching;
 public class PhonexAlgorithm extends NameMatchingAlgorithm {
 
     public PhonexAlgorithm() {
-        LevenshteinAlgorithm levenstheinAlgorithm = new LevenshteinAlgorithm();
     }
 
     @Override

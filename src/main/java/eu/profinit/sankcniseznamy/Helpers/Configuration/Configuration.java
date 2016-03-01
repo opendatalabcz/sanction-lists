@@ -71,7 +71,7 @@ public class Configuration
             new Property(PropertyTypes.PROPERTY_STRING, "Database_Host", false),
             new Property(PropertyTypes.PROPERTY_STRING, "Database_Port", true),
             new Property(PropertyTypes.PROPERTY_STRING, "Database_User", false),
-            new Property(PropertyTypes.PROPERTY_STRING, "Database_Password", false),
+            new Property(PropertyTypes.PROPERTY_STRING, "Database_Password", true),
             new Property(PropertyTypes.PROPERTY_STRING, "Database_Name", false),
     };
 

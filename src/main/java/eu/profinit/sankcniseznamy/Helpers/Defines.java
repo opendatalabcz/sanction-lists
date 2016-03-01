@@ -577,7 +577,7 @@ final public class Defines
         String pattern = "";
         if (dateData.length == 3)
         {
-            if (Integer.valueOf(dateData[0]) == 0)
+            if (Integer.parseInt(dateData[0]) == 0)
                 pattern = dateData[0];
             else
                 pattern = "dd";
