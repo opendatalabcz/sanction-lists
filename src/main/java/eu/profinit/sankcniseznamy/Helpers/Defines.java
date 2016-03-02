@@ -611,7 +611,7 @@ final public class Defines
         else if (date.matches("^(((3[01]|[12][0-9]|[0]?[1-9]|00) )?(1[012]|[0]?[1-9]|00|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) )?((19|20)[0-9]{2})$"))
             pattern = createPattern(date, " ");
         else if (date.matches("^(((3[01]|[12][0-9]|[0]?[1-9]|00)-)?(1[012]|[0]?[1-9]|00|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-)?((19|20)[0-9]{2})$"))
-            pattern = createPattern(date, " ");
+            pattern = createPattern(date, "-");
         else if (date.matches("^((19|20)[0-9]{2})-(1[012]|[0]?[1-9])-(3[01]|[12][0-9]|[0]?[1-9]|00)$"))
             pattern = "yyyy-MM-dd";
         else
@@ -644,13 +644,16 @@ final public class Defines
         Date end = null;
         for (String d : dates)
         {
-            d = d.replace("()", "  ")
-                    .replaceAll("circa", "")
-                    .replaceAll("\\(approximative\\)", "")
+            d = d.replaceAll("\\([^0-9)]*\\)", "")
+                    .replaceAll("( |^)[^0-9]{4,}( |$)", "")
                     .trim();
+
             String[] subsets = d.split("to");
             if (d.matches("^(19|20)[0-9]{2}[ \t]*-[ \t]*(19|20)[0-9]{2}$"))
                 subsets = d.split("-");
+            else if (d.matches("^(19|20)[0-9]{2}[ \t]*/[ \t]*(19|20)[0-9]{2}$"))
+                subsets = d.split("/");
+
             for (String ds : subsets)
             {
                 Date o = parseDate(ds.trim());

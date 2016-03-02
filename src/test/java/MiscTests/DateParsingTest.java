@@ -58,10 +58,10 @@ public class DateParsingTest extends TestCase
     public void testDateConsolidation() throws Exception
     {
         Set<String> dateSet = new HashSet<>();
-        dateSet.add("1998-06-25");
-        dateSet.add("2000-08-16");
-        dateSet.add("2001-01-17");
-        dateSet.add("2001-05-18");
+        dateSet.add("25-Jun-1998 approximative");
+        dateSet.add("2000-08-16 circa");
+        dateSet.add("2001-01-17 (circa)");
+        dateSet.add("2001-05-18 (converted from ISLAMIC)");
 
         Pair<Date, Date> dateRange = Defines.processDatesOfBirth(dateSet);
         assertTrue(compareDates(dateRange.getFirst(), getDate(25, 6, 1998)) &&
