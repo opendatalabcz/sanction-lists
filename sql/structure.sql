@@ -118,7 +118,8 @@ CREATE TABLE entries (
     id integer NOT NULL,
     type character varying(7) NOT NULL,
     date_of_birth_start timestamp without time zone,
-    date_of_birth_end timestamp without time zone
+    date_of_birth_end timestamp without time zone,
+    last_update timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
