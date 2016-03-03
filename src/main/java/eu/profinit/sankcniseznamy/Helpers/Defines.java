@@ -671,4 +671,19 @@ final public class Defines
         return new Pair<>(start, end);
     }
 
+    /**
+     * Method for reversing mapping,
+     * from Key -> Value to Value -> Key
+     *
+     * @param map Input map
+     * @param <K> Key value type
+     * @param <V> Value type
+     * @return Reversed map
+     */
+    public static <K,V> Map<V,K> reverse(Map<K,V> map) {
+        Map<V,K> rev = new HashMap<V, K>();
+        for (Map.Entry<K,V> entry : map.entrySet())
+            rev.put(entry.getValue(), entry.getKey());
+        return rev;
+    }
 }

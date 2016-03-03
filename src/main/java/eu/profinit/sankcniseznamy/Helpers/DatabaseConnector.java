@@ -15,9 +15,20 @@ public class DatabaseConnector
      */
     public enum Statements
     {
+
         STMT_TRUNCATE_ENTRIES,
         STMT_TRUNCATE_ADDRESSES,
         STMT_TRUNCATE_NATIONALITIES,
+
+        STMT_SELECT_ENTRY,
+        STMT_SELECT_ADDRESSES,
+        STMT_SELECT_NATIONALITIES,
+        STMT_SELECT_ENTRY_NAMES,
+        STMT_SELECT_ENTRY_NATIONALITIES,
+        STMT_SELECT_ENTRY_PLACES_OF_BIRTH,
+        STMT_SELECT_ENTRY_ADDRESSES,
+        STMT_SELECT_ENTRY_COMPANIES,
+
         STMT_INSERT_ENTRY,
         STMT_INSERT_ENTRY_ADDRESS,
         STMT_INSERT_ENTRY_NAMES,
@@ -25,7 +36,26 @@ public class DatabaseConnector
         STMT_INSERT_ENTRY_PLACES_OF_BIRTH,
         STMT_INSERT_ENTRY_COMPANIES,
         STMT_INSERT_ADDRESS,
-        STMT_INSERT_NATIONALITY
+        STMT_INSERT_NATIONALITY,
+
+        STMT_UPDATE_ENTITY_DATE_OF_BIRTH,
+        STMT_UPDATE_ENTITY_LAST_LOAD,
+        
+        STMT_UPDATE_MERGE_ENTRY_ADDRESS,
+        STMT_UPDATE_MERGE_ENTRY_NAMES,
+        STMT_UPDATE_MERGE_ENTRY_NATIONALITIES,
+        STMT_UPDATE_MERGE_ENTRY_PLACES_OF_BIRTH,
+        STMT_UPDATE_MERGE_ENTRY_COMPANIES,
+        STMT_UPDATE_COMPANY_REFERENCE,
+
+        STMT_UPDATE_MERGE_ENTRIES,
+        STMT_DELETE_DUPLICATES_ENTRY_ADDRESS,
+        STMT_DELETE_DUPLICATES_ENTRY_NAMES,
+        STMT_DELETE_DUPLICATES_ENTRY_NATIONALITIES,
+        STMT_DELETE_DUPLICATES_ENTRY_PLACES_OF_BIRTH,
+        STMT_DELETE_DUPLICATES_ENTRY_COMPANIES,
+
+        STMT_DELETE_ENTRY
     }
 
     /**
@@ -105,6 +135,19 @@ public class DatabaseConnector
             stmts[Statements.STMT_TRUNCATE_ENTRIES.ordinal()] = con.prepareStatement("TRUNCATE TABLE entries RESTART IDENTITY CASCADE");
             stmts[Statements.STMT_TRUNCATE_ADDRESSES.ordinal()] = con.prepareStatement("TRUNCATE TABLE addresses RESTART IDENTITY CASCADE");
             stmts[Statements.STMT_TRUNCATE_NATIONALITIES.ordinal()] = con.prepareStatement("TRUNCATE TABLE nationalities RESTART IDENTITY CASCADE");
+
+            
+            
+            stmts[Statements.STMT_SELECT_ADDRESSES.ordinal()] = con.prepareStatement("SELECT address_id, address FROM addresses;");
+            stmts[Statements.STMT_SELECT_NATIONALITIES.ordinal()] = con.prepareStatement("SELECT nationality_id, nationality FROM nationalities;");
+
+            stmts[Statements.STMT_SELECT_ENTRY.ordinal()] = con.prepareStatement("SELECT id, type, date_of_birth_start, date_of_birth_end FROM entries WHERE id = ?;");
+            stmts[Statements.STMT_SELECT_ENTRY_NAMES.ordinal()] = con.prepareStatement("SELECT entry_id, name FROM entry_names");
+            stmts[Statements.STMT_SELECT_ENTRY_ADDRESSES.ordinal()] = con.prepareStatement("SELECT entry_id, address_id FROM entry_addresses WHERE entry_id = ?;");
+            stmts[Statements.STMT_SELECT_ENTRY_PLACES_OF_BIRTH.ordinal()] = con.prepareStatement("SELECT entry_id, address_id FROM entry_places_of_birth WHERE entry_id = ?;");
+            stmts[Statements.STMT_SELECT_ENTRY_NATIONALITIES.ordinal()] = con.prepareStatement("SELECT entry_id, nationality_id FROM entry_nationalities WHERE entry_id = ?;");
+            stmts[Statements.STMT_SELECT_ENTRY_COMPANIES.ordinal()] = con.prepareStatement("SELECT entry_id, company_name FROM entry_companies WHERE entry_id = ?;");
+
             stmts[Statements.STMT_INSERT_ADDRESS.ordinal()] = con.prepareStatement("INSERT INTO addresses (address) VALUES (?);", Statement.RETURN_GENERATED_KEYS);
             stmts[Statements.STMT_INSERT_NATIONALITY.ordinal()] = con.prepareStatement("INSERT INTO nationalities (nationality) VALUES (?);", Statement.RETURN_GENERATED_KEYS);
             stmts[Statements.STMT_INSERT_ENTRY.ordinal()] = con.prepareStatement("INSERT INTO entries (type, date_of_birth_start, date_of_birth_end) VALUES (?, ?, ?);", Statement.RETURN_GENERATED_KEYS);
@@ -114,6 +157,27 @@ public class DatabaseConnector
             stmts[Statements.STMT_INSERT_ENTRY_PLACES_OF_BIRTH.ordinal()] = con.prepareStatement("INSERT INTO entry_places_of_birth (entry_id, address_id) VALUES (?, ?);");
             stmts[Statements.STMT_INSERT_ENTRY_COMPANIES.ordinal()] = con.prepareStatement("INSERT INTO entry_companies (entry_id, company_name, company_address, referenced_id) VALUES (?, ?, ?, ?);");
 
+            stmts[Statements.STMT_UPDATE_ENTITY_LAST_LOAD.ordinal()] = con.prepareStatement("UPDATE entries SET last_update = CURRENT_TIMESTAMP WHERE id = ?;");
+            stmts[Statements.STMT_UPDATE_ENTITY_DATE_OF_BIRTH.ordinal()] = con.prepareStatement("UPDATE entries SET date_of_birth_start = ?, date_of_birth_end = ? WHERE id = ?;");
+
+            stmts[Statements.STMT_UPDATE_MERGE_ENTRIES.ordinal()] = con.prepareStatement("UPDATE entries SET " +
+                    "date_of_birth_start = LEAST(date_of_birth_start, (SELECT date_of_birth_start FROM entries WHERE id = ? )), " +
+                    "date_of_birth_end = GREATEST(date_of_birth_end,  (SELECT date_of_birth_end FROM entries WHERE id = ? )) " +
+                    "WHERE id = ?");
+
+            stmts[Statements.STMT_UPDATE_MERGE_ENTRY_ADDRESS.ordinal()] = con.prepareStatement("UPDATE entry_addresses SET entry_id = ? WHERE entry_id = ?");
+            stmts[Statements.STMT_UPDATE_MERGE_ENTRY_NAMES.ordinal()] = con.prepareStatement("UPDATE entry_names SET entry_id = ? WHERE entry_id = ?");
+            stmts[Statements.STMT_UPDATE_MERGE_ENTRY_NATIONALITIES.ordinal()] = con.prepareStatement("UPDATE entry_nationalities SET entry_id = ? WHERE entry_id = ?");
+            stmts[Statements.STMT_UPDATE_MERGE_ENTRY_PLACES_OF_BIRTH.ordinal()] = con.prepareStatement("UPDATE entry_places_of_birth SET entry_id = ? WHERE entry_id = ?");
+            stmts[Statements.STMT_UPDATE_MERGE_ENTRY_COMPANIES.ordinal()] = con.prepareStatement("UPDATE entry_companies SET entry_id = ? WHERE entry_id = ?");
+            stmts[Statements.STMT_UPDATE_COMPANY_REFERENCE.ordinal()] = con.prepareStatement("UPDATE entry_companies SET referenced_id = ? WHERE referenced_id = ?");
+
+            stmts[Statements.STMT_DELETE_DUPLICATES_ENTRY_ADDRESS.ordinal()] = con.prepareStatement("DELETE FROM entry_addresses WHERE entry_id = ? AND address_id IN ( SELECT address_id FROM entry_addresses WHERE entry_id = ? );");
+            stmts[Statements.STMT_DELETE_DUPLICATES_ENTRY_NATIONALITIES.ordinal()] = con.prepareStatement("DELETE FROM entry_nationalities WHERE entry_id = ? AND nationality_id IN ( SELECT nationality_id FROM entry_nationalities WHERE entry_id = ? );");
+            stmts[Statements.STMT_DELETE_DUPLICATES_ENTRY_PLACES_OF_BIRTH.ordinal()] = con.prepareStatement("DELETE FROM entry_places_of_birth WHERE entry_id = ? AND address_id IN ( SELECT address_id FROM entry_places_of_birth WHERE entry_id = ? );");
+            stmts[Statements.STMT_DELETE_DUPLICATES_ENTRY_COMPANIES.ordinal()] = con.prepareStatement("DELETE FROM entry_companies WHERE entry_id = ? AND company_name IN ( SELECT company_name FROM entry_companies WHERE entry_id = ? );");
+
+            stmts[Statements.STMT_DELETE_ENTRY.ordinal()] = con.prepareStatement("DELETE FROM entries WHERE id = ?");
         } catch (SQLException e)
         {
             for (PreparedStatement stmt : stmts)

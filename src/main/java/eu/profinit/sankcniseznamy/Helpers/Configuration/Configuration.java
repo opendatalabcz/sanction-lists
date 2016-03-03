@@ -63,6 +63,7 @@ public class Configuration
             new Property(PropertyTypes.PROPERTY_BOOLEAN, "Guth_Matching", false),
             new Property(PropertyTypes.PROPERTY_BOOLEAN, "Soundex_Matching", false),
             new Property(PropertyTypes.PROPERTY_BOOLEAN, "Phonex_Matching", false),
+            new Property(PropertyTypes.PROPERTY_BOOLEAN, "Use_Truncating", false),
 
             // Unsigned Properties
             new Property(PropertyTypes.PROPERTY_UNSIGNED, "Matching_Threads", false),
